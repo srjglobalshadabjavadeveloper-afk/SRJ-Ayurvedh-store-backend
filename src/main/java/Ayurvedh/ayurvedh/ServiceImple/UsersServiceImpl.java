@@ -1,0 +1,226 @@
+package Ayurvedh.ayurvedh.ServiceImple;
+
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.Date;
+import java.util.Random;
+
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import Ayurvedh.ayurvedh.Repositories.RegistrationRepo;
+import Ayurvedh.ayurvedh.Repositories.AddressRepository;
+import Ayurvedh.ayurvedh.Repositories.RolesRepository;
+import Ayurvedh.ayurvedh.Services.UsersService;
+import Ayurvedh.ayurvedh.dto.RegisterUserDto;
+import Ayurvedh.ayurvedh.dto.AddressDto;
+import Ayurvedh.ayurvedh.dto.CreateOrderDto;
+import Ayurvedh.ayurvedh.entity.Address;
+import Ayurvedh.ayurvedh.entity.Order;
+import Ayurvedh.ayurvedh.entity.Users;
+import Ayurvedh.ayurvedh.entity.Roles;
+import Ayurvedh.ayurvedh.Repositories.OrderRepository;
+
+@Service
+public class UsersServiceImpl implements UsersService {
+
+    private final RegistrationRepo registrationRepo;
+    private final AddressRepository addressRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final MailService mailService;
+    private final OrderRepository orderRepository;
+    private final RolesRepository rolesRepository;
+
+    public UsersServiceImpl(RegistrationRepo registrationRepo, AddressRepository addressRepository, 
+                          PasswordEncoder passwordEncoder, MailService mailService, 
+                          OrderRepository orderRepository, RolesRepository rolesRepository) {
+        this.registrationRepo = registrationRepo;
+        this.addressRepository = addressRepository;
+        this.passwordEncoder = passwordEncoder;
+        this.mailService = mailService;
+        this.orderRepository = orderRepository;
+        this.rolesRepository = rolesRepository;
+    }
+
+    @Override
+    @Transactional
+    public Users register(RegisterUserDto dto) {
+        Users existing = registrationRepo.findByEmail(dto.getEmail());
+        if (existing != null) {
+            throw new IllegalArgumentException("Email already registered");
+        }
+        
+        // Get or create USER role (default role for all new registrations)
+        Roles userRole = rolesRepository.findByName("USER")
+            .orElseGet(() -> {
+                Roles newRole = new Roles();
+                newRole.setName("USER");
+                newRole.setDescription("Regular user role");
+                newRole.setCreatedAt(new Date());
+                newRole.setUpdatedAt(new Date());
+                return rolesRepository.save(newRole);
+            });
+        
+        Users user = new Users();
+        user.setEmail(dto.getEmail());
+        user.setName(dto.getName());
+        user.setPassword(passwordEncoder.encode(dto.getPassword()));
+        user.setRole(userRole); // Automatically assign USER role
+        user.setStatus(false);
+        user.setVerify_email(false);
+        user.setCreatedAt(new Date());
+        user.setUpdatedAt(new Date());
+        registrationRepo.save(user);
+
+        sendEmailVerificationOtp(dto.getEmail());
+        return user;
+    }
+
+    @Override
+    @Transactional
+    public Order createOrder(String email, CreateOrderDto dto) {
+        Users user = registrationRepo.findByEmail(email);
+        if (user == null) {
+            throw new IllegalArgumentException("User not found");
+        }
+        Order order = new Order();
+        order.setUser(user);
+        order.setOrder_id("ORD-" + System.currentTimeMillis());
+        order.setOrder_details(dto.getOrderDetails());
+        order.setPayment_id(dto.getPaymentId());
+        order.setPayment_status(dto.getPaymentStatus());
+        order.setDelivery_address(dto.getDeliveryAddress());
+        order.setDelivery_status(dto.getDeliveryStatus());
+        order.setSub_total_amount(dto.getSubTotalAmount());
+        order.setTotal_amount(dto.getTotalAmount());
+        order.setInvoice_receipt(dto.getInvoiceReceipt());
+        order.setCreatedAt(new Date());
+        order.setUpdatedAt(new Date());
+        return orderRepository.save(order);
+    }
+
+    @Override
+    public java.util.List<Order> getOrders(String email) {
+        Users user = registrationRepo.findByEmail(email);
+        if (user == null) {
+            throw new IllegalArgumentException("User not found");
+        }
+        return orderRepository.findByUserId(user.getId());
+    }
+
+    @Override
+    public Order getOrderByBusinessId(String email, String orderId) {
+        Users user = registrationRepo.findByEmail(email);
+        if (user == null) {
+            throw new IllegalArgumentException("User not found");
+        }
+        Order order = orderRepository.findByOrderId(orderId);
+        if (order == null) {
+            return null;
+        }
+        if (!user.getId().equals(order.getUser().getId())) {
+            throw new IllegalArgumentException("Forbidden");
+        }
+        return order;
+    }
+
+    @Override
+    @Transactional
+    public Address addAddressForUser(String email, AddressDto addressDto) {
+        Users user = registrationRepo.findByEmail(email);
+        if (user == null) {
+            throw new IllegalArgumentException("User not found");
+        }
+        Address address = new Address();
+        address.setAddress_line(addressDto.getAddressLine());
+        address.setCity(addressDto.getCity());
+        address.setState(addressDto.getState());
+        address.setPin_code(addressDto.getPinCode());
+        address.setCountry(addressDto.getCountry());
+        if (addressDto.getMobile() != null) {
+            address.setMobile(addressDto.getMobile());
+        }
+        address.setCreatedAt(new Date());
+        address.setUpdatedAt(new Date());
+        address.setUser(user);
+        Address saved = addressRepository.save(address);
+        user.addAddress(saved);
+        registrationRepo.save(user);
+        return saved;
+    }
+
+    @Override
+    public java.util.List<Address> getAddressesForUser(String email) {
+        Users user = registrationRepo.findByEmail(email);
+        if (user == null) {
+            throw new IllegalArgumentException("User not found");
+        }
+        return user.getAddresses();
+    }
+
+    @Override
+    public void sendEmailVerificationOtp(String email) {
+        Users user = registrationRepo.findByEmail(email);
+        if (user == null) return;
+        String otp = generateOtp();
+        user.setEmailVerificationOtp(otp);
+        user.setEmailVerificationExpiry(Date.from(Instant.now().plus(10, ChronoUnit.MINUTES)));
+        registrationRepo.save(user);
+        mailService.sendMail(email, "Verify your email", "Your verification OTP is: " + otp);
+    }
+
+    @Override
+    @Transactional
+    public boolean verifyEmail(String email, String otp) {
+        Users user = registrationRepo.findByEmail(email);
+        if (user == null) return false;
+        if (user.getEmailVerificationOtp() == null || user.getEmailVerificationExpiry() == null) return false;
+        if (user.getEmailVerificationExpiry().before(new Date())) return false;
+        boolean matched = otp != null && otp.equals(user.getEmailVerificationOtp());
+        if (matched) {
+            user.setVerify_email(true);
+            user.setStatus(true);
+            user.setEmailVerificationOtp(null);
+            user.setEmailVerificationExpiry(null);
+            registrationRepo.save(user);
+        }
+        return matched;
+    }
+
+    @Override
+    public void initiateForgotPassword(String email) {
+        Users user = registrationRepo.findByEmail(email);
+        if (user == null) return;
+        String otp = generateOtp();
+        user.setResetPasswordOtp(otp);
+        user.setResetPasswordExpiry(Date.from(Instant.now().plus(10, ChronoUnit.MINUTES)));
+        registrationRepo.save(user);
+        mailService.sendMail(email, "Password reset OTP", "Your password reset OTP is: " + otp);
+    }
+
+    @Override
+    @Transactional
+    public boolean resetPassword(String email, String otp, String newPassword) {
+        Users user = registrationRepo.findByEmail(email);
+        if (user == null) return false;
+        if (user.getResetPasswordOtp() == null || user.getResetPasswordExpiry() == null) return false;
+        if (user.getResetPasswordExpiry().before(new Date())) return false;
+        boolean matched = otp != null && otp.equals(user.getResetPasswordOtp());
+        if (matched) {
+            user.setPassword(passwordEncoder.encode(newPassword));
+            user.setLastPasswordReset(new Date());
+            user.setResetPasswordOtp(null);
+            user.setResetPasswordExpiry(null);
+            registrationRepo.save(user);
+        }
+        return matched;
+    }
+
+    private String generateOtp() {
+        int code = 100000 + new Random().nextInt(900000);
+        return String.valueOf(code);
+    }
+}
+
+
