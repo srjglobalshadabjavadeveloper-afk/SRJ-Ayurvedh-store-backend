@@ -3,6 +3,7 @@ package Ayurvedh.ayurvedh;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.context.annotation.Bean;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
@@ -21,14 +22,16 @@ public class AyurvedhApplication {
 	}
 
 	@Bean
+	@Transactional
 	public CommandLineRunner initDefaultAdmin(RegistrationRepo registrationRepo, RolesRepository rolesRepository, PasswordEncoder passwordEncoder) {
 		return args -> {
 			final String adminEmail = "admin@ayurvedh.local";
 			final String adminPassword = "admin123";
 			
-			// Create roles if they don't exist
+			// Create admin role if it doesn't exist
 			Roles adminRole = getOrCreateRole(rolesRepository, "ADMIN", "Administrator role");
-			Roles userRole = getOrCreateRole(rolesRepository, "USER", "Regular user role");
+			// Create user role if it doesn't exist (kept for future use)
+			getOrCreateRole(rolesRepository, "USER", "Regular user role");
 			
 			
 			Users existingAdmin = registrationRepo.findByEmail(adminEmail);
@@ -51,8 +54,9 @@ public class AyurvedhApplication {
 				System.out.println("   Password: " + adminPassword);
 				System.out.println("   Role: ADMIN");
 			} else {
-				// Fix existing admin user if needed
-				if (existingAdmin.getRole() == null || !"ADMIN".equals(existingAdmin.getRole().getName())) {
+				// Check if the admin role is already assigned using a query that doesn't trigger lazy loading
+				boolean hasAdminRole = rolesRepository.existsByIdAndName(existingAdmin.getRole().getId(), "ADMIN");
+				if (!hasAdminRole) {
 					existingAdmin.setRole(adminRole);
 					existingAdmin.setUpdatedAt(new Date());
 					registrationRepo.save(existingAdmin);
