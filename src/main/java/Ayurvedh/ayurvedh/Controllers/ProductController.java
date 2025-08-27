@@ -16,22 +16,22 @@ import Ayurvedh.ayurvedh.entity.Products;
 import Ayurvedh.ayurvedh.entity.Category;
 import Ayurvedh.ayurvedh.entity.SubCategory;
 
-@RestController
+@RestController("/public")
 @CrossOrigin(origins = "http://localhost:5173")
 
 public class ProductController {
 
-    @Autowired
-    private ProductsService productsService;
+	@Autowired
+	private ProductsService productsService;
 
-    @Autowired
-    private categories categoriesService;
+	@Autowired
+	private categories categoriesService;
 
-    @Autowired
-    private SubCategoryService subCategoryService;
+	@Autowired
+	private SubCategoryService subCategoryService;
 
-    @GetMapping("/products/{id}")
-	public ResponseEntity<?> getProductById(@PathVariable Long id){
+	@GetMapping("/products/{id}")
+	public ResponseEntity<?> getProductById(@PathVariable Long id) {
 		try {
 			Products product = productsService.getProductById(id);
 			if (product == null) {
@@ -43,19 +43,18 @@ public class ProductController {
 		}
 	}
 
-    @GetMapping("/products")
-    public ResponseEntity<?> getAllProducts(){
-        try {
-            List<Products> products = productsService.getAllProducts();
-            return ResponseEntity.ok(products);
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Error fetching products: " + e.getMessage());
-        }
-    }
+	@GetMapping("/products")
+	public ResponseEntity<?> getAllProducts() {
+		try {
+			List<Products> products = productsService.getAllProducts();
+			return ResponseEntity.ok(products);
+		} catch (Exception e) {
+			return ResponseEntity.badRequest().body("Error fetching products: " + e.getMessage());
+		}
+	}
 
-
-    @GetMapping("/subcategories/category/{categoryId}")
-	public ResponseEntity<?> getSubCategoriesByCategory(@PathVariable Long categoryId){
+	@GetMapping("/subcategories/category/{categoryId}")
+	public ResponseEntity<?> getSubCategoriesByCategory(@PathVariable Long categoryId) {
 		try {
 			List<SubCategory> list = subCategoryService.getSubCategoriesByCategory(categoryId);
 			return ResponseEntity.ok(list);
@@ -63,9 +62,9 @@ public class ProductController {
 			return ResponseEntity.badRequest().body("Error fetching subcategories: " + e.getMessage());
 		}
 	}
-	
+
 	@GetMapping("/subcategories/{id}")
-	public ResponseEntity<?> getSubCategoryById(@PathVariable Long id){
+	public ResponseEntity<?> getSubCategoryById(@PathVariable Long id) {
 		try {
 			SubCategory sc = subCategoryService.getSubCategoryById(id);
 			if (sc == null) {
@@ -74,13 +73,13 @@ public class ProductController {
 			return ResponseEntity.ok(sc);
 		} catch (Exception e) {
 			return ResponseEntity.badRequest().body("Error fetching subcategory: " + e.getMessage());
-		
+
 		}
 	}
 
-    @GetMapping("/categories")
-	public ResponseEntity<?> getAllCategories(){
-		
+	@GetMapping("/categories")
+	public ResponseEntity<?> getAllCategories() {
+
 		try {
 			List<Category> categories = categoriesService.getAllCategories();
 			return ResponseEntity.ok(categories);
@@ -88,9 +87,9 @@ public class ProductController {
 			return ResponseEntity.badRequest().body("Error fetching categories: " + e.getMessage());
 		}
 	}
-	
+
 	@GetMapping("/categories/{id}")
-	public ResponseEntity<?> getCategoryById(@PathVariable Long id){
+	public ResponseEntity<?> getCategoryById(@PathVariable Long id) {
 		try {
 			Category category = categoriesService.getCategoryById(id);
 			if (category == null) {
@@ -101,6 +100,5 @@ public class ProductController {
 			return ResponseEntity.badRequest().body("Error fetching category: " + e.getMessage());
 		}
 	}
-
 
 }

@@ -10,12 +10,18 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 
 import Ayurvedh.ayurvedh.Services.UsersService;
 import Ayurvedh.ayurvedh.dto.AddressDto;
 import Ayurvedh.ayurvedh.entity.Address;
 import Ayurvedh.ayurvedh.entity.Order;
 import Ayurvedh.ayurvedh.dto.CreateOrderDto;
+import Ayurvedh.ayurvedh.dto.AddToCartDto;
+import Ayurvedh.ayurvedh.entity.CartProducts;
+import Ayurvedh.ayurvedh.dto.CartSummaryDto;
 
 @RestController
 @RequestMapping("/user")
@@ -74,5 +80,48 @@ public class UserController {
             return ResponseEntity.notFound().build();
         }
         return ResponseEntity.ok(order);
+    }
+
+    @PostMapping("/cart")
+    public ResponseEntity<CartProducts> addToCart(Authentication authentication, @RequestBody AddToCartDto dto) {
+        String email = authentication.getName();
+        CartProducts cp = usersService.addToCart(email, dto);
+        return ResponseEntity.ok(cp);
+    }
+
+    @GetMapping("/cart")
+    public ResponseEntity<java.util.List<CartProducts>> getCart(Authentication authentication) {
+        String email = authentication.getName();
+        return ResponseEntity.ok(usersService.getCart(email));
+    }
+
+    @PutMapping("/cart/{cartItemId}")
+    public ResponseEntity<CartProducts> updateCartItem(Authentication authentication,
+            @PathVariable Long cartItemId,
+            @RequestBody java.util.Map<String, Integer> body) {
+        String email = authentication.getName();
+        Integer quantity = body.get("quantity");
+        CartProducts updated = usersService.updateCartItemQuantity(email, cartItemId, quantity);
+        return ResponseEntity.ok(updated);
+    }
+
+    @DeleteMapping("/cart/{cartItemId}")
+    public ResponseEntity<Void> removeCartItem(Authentication authentication, @PathVariable Long cartItemId) {
+        String email = authentication.getName();
+        usersService.removeCartItem(email, cartItemId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @DeleteMapping("/cart")
+    public ResponseEntity<Void> clearCart(Authentication authentication) {
+        String email = authentication.getName();
+        usersService.clearCart(email);
+        return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/cart/summary")
+    public ResponseEntity<CartSummaryDto> getCartSummary(Authentication authentication) {
+        String email = authentication.getName();
+        return ResponseEntity.ok(usersService.getCartSummary(email));
     }
 }

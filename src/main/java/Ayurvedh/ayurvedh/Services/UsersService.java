@@ -5,9 +5,12 @@ import java.util.List;
 import Ayurvedh.ayurvedh.dto.RegisterUserDto;
 import Ayurvedh.ayurvedh.dto.AddressDto;
 import Ayurvedh.ayurvedh.dto.CreateOrderDto;
+import Ayurvedh.ayurvedh.dto.AddToCartDto;
 import Ayurvedh.ayurvedh.entity.Users;
 import Ayurvedh.ayurvedh.entity.Address;
 import Ayurvedh.ayurvedh.entity.Order;
+import Ayurvedh.ayurvedh.entity.CartProducts;
+import Ayurvedh.ayurvedh.dto.CartSummaryDto;
 
 public interface UsersService {
 	Users register(RegisterUserDto dto);
@@ -29,4 +32,16 @@ public interface UsersService {
 	List<Order> getOrders(String email);
 
 	Order getOrderByBusinessId(String email, String orderId);
+
+	CartProducts addToCart(String email, AddToCartDto dto);
+
+	java.util.List<CartProducts> getCart(String email);
+
+	CartProducts updateCartItemQuantity(String email, Long cartItemId, Integer quantity);
+
+	void removeCartItem(String email, Long cartItemId);
+
+	void clearCart(String email);
+
+	CartSummaryDto getCartSummary(String email);
 }

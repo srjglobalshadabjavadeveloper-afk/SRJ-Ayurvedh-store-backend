@@ -16,11 +16,17 @@ import Ayurvedh.ayurvedh.Services.UsersService;
 import Ayurvedh.ayurvedh.dto.RegisterUserDto;
 import Ayurvedh.ayurvedh.dto.AddressDto;
 import Ayurvedh.ayurvedh.dto.CreateOrderDto;
+import Ayurvedh.ayurvedh.dto.AddToCartDto;
 import Ayurvedh.ayurvedh.entity.Address;
 import Ayurvedh.ayurvedh.entity.Order;
 import Ayurvedh.ayurvedh.entity.Users;
 import Ayurvedh.ayurvedh.entity.Roles;
+import Ayurvedh.ayurvedh.entity.CartProducts;
+import Ayurvedh.ayurvedh.entity.Products;
 import Ayurvedh.ayurvedh.Repositories.OrderRepository;
+import Ayurvedh.ayurvedh.Repositories.CartProductsRepository;
+import Ayurvedh.ayurvedh.Repositories.ProductsRepository;
+import Ayurvedh.ayurvedh.dto.CartSummaryDto;
 
 @Service
 public class UsersServiceImpl implements UsersService {
@@ -31,16 +37,21 @@ public class UsersServiceImpl implements UsersService {
     private final MailService mailService;
     private final OrderRepository orderRepository;
     private final RolesRepository rolesRepository;
+    private final CartProductsRepository cartProductsRepository;
+    private final ProductsRepository productsRepository;
 
     public UsersServiceImpl(RegistrationRepo registrationRepo, AddressRepository addressRepository, 
                           PasswordEncoder passwordEncoder, MailService mailService, 
-                          OrderRepository orderRepository, RolesRepository rolesRepository) {
+                          OrderRepository orderRepository, RolesRepository rolesRepository,
+                          CartProductsRepository cartProductsRepository, ProductsRepository productsRepository) {
         this.registrationRepo = registrationRepo;
         this.addressRepository = addressRepository;
         this.passwordEncoder = passwordEncoder;
         this.mailService = mailService;
         this.orderRepository = orderRepository;
         this.rolesRepository = rolesRepository;
+        this.cartProductsRepository = cartProductsRepository;
+        this.productsRepository = productsRepository;
     }
 
     @Override
@@ -98,6 +109,114 @@ public class UsersServiceImpl implements UsersService {
         order.setCreatedAt(new Date());
         order.setUpdatedAt(new Date());
         return orderRepository.save(order);
+    }
+
+    @Override
+    @Transactional
+    public CartProducts addToCart(String email, AddToCartDto dto) {
+        Users user = registrationRepo.findByEmail(email);
+        if (user == null) {
+            throw new IllegalArgumentException("User not found");
+        }
+        if (dto == null || dto.getProductId() == null || dto.getQuantity() == null || dto.getQuantity() <= 0) {
+            throw new IllegalArgumentException("Invalid request");
+        }
+        Products product = productsRepository.findById(dto.getProductId()).orElse(null);
+        if (product == null) {
+            throw new IllegalArgumentException("Product not found");
+        }
+        CartProducts cartProduct = cartProductsRepository
+            .findByUserIdAndProductId(user.getId(), product.getId())
+            .orElse(null);
+        if (cartProduct == null) {
+            cartProduct = new CartProducts();
+            cartProduct.setUser(user);
+            cartProduct.setProduct(product);
+            cartProduct.setQuantity(dto.getQuantity());
+            cartProduct.setCreatedAt(new Date());
+            cartProduct.setUpdatedAt(new Date());
+        } else {
+            cartProduct.setQuantity(cartProduct.getQuantity() + dto.getQuantity());
+            cartProduct.setUpdatedAt(new Date());
+        }
+        CartProducts saved = cartProductsRepository.save(cartProduct);
+        return saved;
+    }
+
+    @Override
+    public java.util.List<CartProducts> getCart(String email) {
+        Users user = registrationRepo.findByEmail(email);
+        if (user == null) {
+            throw new IllegalArgumentException("User not found");
+        }
+        return cartProductsRepository.findByUserId(user.getId());
+    }
+
+    @Override
+    @Transactional
+    public CartProducts updateCartItemQuantity(String email, Long cartItemId, Integer quantity) {
+        Users user = registrationRepo.findByEmail(email);
+        if (user == null) {
+            throw new IllegalArgumentException("User not found");
+        }
+        if (quantity == null || quantity <= 0) {
+            throw new IllegalArgumentException("Invalid quantity");
+        }
+        CartProducts item = cartProductsRepository.findByIdAndUserId(cartItemId, user.getId())
+            .orElseThrow(() -> new IllegalArgumentException("Cart item not found"));
+        item.setQuantity(quantity);
+        item.setUpdatedAt(new Date());
+        return cartProductsRepository.save(item);
+    }
+
+    @Override
+    @Transactional
+    public void removeCartItem(String email, Long cartItemId) {
+        Users user = registrationRepo.findByEmail(email);
+        if (user == null) {
+            throw new IllegalArgumentException("User not found");
+        }
+        CartProducts item = cartProductsRepository.findByIdAndUserId(cartItemId, user.getId())
+            .orElseThrow(() -> new IllegalArgumentException("Cart item not found"));
+        cartProductsRepository.delete(item);
+    }
+
+    @Override
+    @Transactional
+    public void clearCart(String email) {
+        Users user = registrationRepo.findByEmail(email);
+        if (user == null) {
+            throw new IllegalArgumentException("User not found");
+        }
+        cartProductsRepository.deleteByUserId(user.getId());
+    }
+
+    @Override
+    public CartSummaryDto getCartSummary(String email) {
+        Users user = registrationRepo.findByEmail(email);
+        if (user == null) {
+            throw new IllegalArgumentException("User not found");
+        }
+        java.util.List<CartProducts> items = cartProductsRepository.findByUserId(user.getId());
+        CartSummaryDto summary = new CartSummaryDto();
+        int totalItems = 0;
+        int subTotal = 0;
+        int discountTotal = 0;
+        for (CartProducts cp : items) {
+            int qty = cp.getQuantity();
+            totalItems += qty;
+            int price = cp.getProduct().getPrice();
+            int discount = cp.getProduct().getDiscount();
+            int lineSubTotal = price * qty;
+            int lineDiscount = discount * qty;
+            subTotal += lineSubTotal;
+            discountTotal += lineDiscount;
+        }
+        summary.setTotalItems(totalItems);
+        summary.setSubTotalAmount(subTotal);
+        summary.setTotalDiscount(discountTotal);
+        summary.setTotalAmount(subTotal - discountTotal);
+        return summary;
     }
 
     @Override
