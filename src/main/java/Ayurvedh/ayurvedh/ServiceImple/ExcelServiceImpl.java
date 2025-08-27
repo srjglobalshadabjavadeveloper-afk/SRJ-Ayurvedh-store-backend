@@ -24,10 +24,10 @@ import java.util.List;
 @Service
 public class ExcelServiceImpl implements ExcelService {
 
-	private static final Logger logger = LoggerFactory.getLogger(ExcelServiceImpl.class);
+    private static final Logger logger = LoggerFactory.getLogger(ExcelServiceImpl.class);
 
-	@Autowired
-	private ProductsService productsService;
+    @Autowired
+    private ProductsService productsService;
 
     @Autowired
     private categories categoriesService;
@@ -43,40 +43,39 @@ public class ExcelServiceImpl implements ExcelService {
 
         try (Workbook workbook = new XSSFWorkbook(file.getInputStream())) {
             Sheet sheet = workbook.getSheetAt(0);
-            
-            logger.info("Excel file opened successfully. Sheet name: {}, Total rows: {}", 
-                sheet.getSheetName(), sheet.getLastRowNum());
-            
-            // Validate header row
+
+            logger.info("Excel file opened successfully. Sheet name: {}, Total rows: {}",
+                    sheet.getSheetName(), sheet.getLastRowNum());
+
             Row headerRow = sheet.getRow(0);
             if (headerRow == null || headerRow.getLastCellNum() < 11) {
-                String errorMsg = "Excel file must have at least 11 columns. Found: " + 
-                    (headerRow != null ? headerRow.getLastCellNum() : 0) + ". Please use the provided template.";
+                String errorMsg = "Excel file must have at least 11 columns. Found: " +
+                        (headerRow != null ? headerRow.getLastCellNum() : 0) + ". Please use the provided template.";
                 logger.error(errorMsg);
                 errors.add(errorMsg);
                 return new BulkUploadResponseDto(0, 0, 0, errors);
             }
-            
+
             logger.info("Header row validated. Columns found: {}", headerRow.getLastCellNum());
-            
-            // Skip header row
+
             for (int i = 1; i <= sheet.getLastRowNum(); i++) {
                 Row row = sheet.getRow(i);
                 if (row == null) {
                     logger.warn("Row {} is null, skipping", i + 1);
                     continue;
                 }
-                
+
                 totalProcessed++;
                 logger.info("Processing row {}: {}", i + 1, row.getRowNum());
-                
+
                 try {
                     AddProductDto productDto = extractProductFromRow(row);
                     if (productDto != null) {
                         logger.info("Product DTO created for row {}: {}", i + 1, productDto.getName());
-                        logger.info("Product details - Category ID: {}, SubCategory ID: {}, Price: {}, Stock: {}", 
-                            productDto.getCategoryId(), productDto.getSubCategoryId(), productDto.getPrice(), productDto.getStock());
-                        
+                        logger.info("Product details - Category ID: {}, SubCategory ID: {}, Price: {}, Stock: {}",
+                                productDto.getCategoryId(), productDto.getSubCategoryId(), productDto.getPrice(),
+                                productDto.getStock());
+
                         Products savedProduct = productsService.addProduct(productDto);
                         successCount++;
                         logger.info("Product added successfully for row {} with ID: {}", i + 1, savedProduct.getId());
@@ -98,8 +97,7 @@ public class ExcelServiceImpl implements ExcelService {
 
     private AddProductDto extractProductFromRow(Row row) throws Exception {
         AddProductDto dto = new AddProductDto();
-        
-        // Extract data from each column
+
         dto.setName(getStringCellValue(row.getCell(0), "Product Name"));
         dto.setImage(getStringCellValue(row.getCell(1), "Image URL"));
         dto.setCategoryId(getLongCellValue(row.getCell(2), "Category ID"));
@@ -111,10 +109,9 @@ public class ExcelServiceImpl implements ExcelService {
         dto.setDescription(getStringCellValue(row.getCell(8), "Description"));
         dto.setMoreDetails(getStringCellValue(row.getCell(9), "More Details"));
         dto.setPublish(getBooleanCellValue(row.getCell(10), "Publish"));
-        
-        // Validate category and subcategory exist
+
         validateCategoryAndSubCategory(dto);
-        
+
         return dto;
     }
 
@@ -122,7 +119,7 @@ public class ExcelServiceImpl implements ExcelService {
         if (cell == null) {
             return "";
         }
-        
+
         switch (cell.getCellType()) {
             case STRING:
                 return cell.getStringCellValue().trim();
@@ -139,7 +136,7 @@ public class ExcelServiceImpl implements ExcelService {
         if (cell == null) {
             throw new Exception(fieldName + " is required");
         }
-        
+
         switch (cell.getCellType()) {
             case NUMERIC:
                 return (long) cell.getNumericCellValue();
@@ -158,7 +155,7 @@ public class ExcelServiceImpl implements ExcelService {
         if (cell == null) {
             throw new Exception(fieldName + " is required");
         }
-        
+
         switch (cell.getCellType()) {
             case NUMERIC:
                 return (int) cell.getNumericCellValue();
@@ -175,9 +172,9 @@ public class ExcelServiceImpl implements ExcelService {
 
     private boolean getBooleanCellValue(Cell cell, String fieldName) throws Exception {
         if (cell == null) {
-            return false; // Default to false if not specified
+            return false;
         }
-        
+
         switch (cell.getCellType()) {
             case BOOLEAN:
                 return cell.getBooleanCellValue();
@@ -198,7 +195,7 @@ public class ExcelServiceImpl implements ExcelService {
     }
 
     private void validateCategoryAndSubCategory(AddProductDto dto) throws Exception {
-        
+
         if (dto.getCategoryId() != null) {
             logger.info("Validating category ID: {}", dto.getCategoryId());
             Category category = categoriesService.getCategoryById(dto.getCategoryId());
@@ -209,7 +206,7 @@ public class ExcelServiceImpl implements ExcelService {
             }
             logger.info("Category validated: {}", category.getName());
         }
-        
+
         // Validate subcategory exists
         if (dto.getSubCategoryId() != null) {
             logger.info("Validating subcategory ID: {}", dto.getSubCategoryId());

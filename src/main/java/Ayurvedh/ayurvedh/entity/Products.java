@@ -61,15 +61,12 @@ public class Products {
 
     private Date updatedAt;
 
-    // Bidirectional relationship with CartProducts
     @OneToMany(mappedBy = "product", cascade = {CascadeType.PERSIST, CascadeType.MERGE}, fetch = FetchType.LAZY, orphanRemoval = true)
     private List<CartProducts> cartProducts = new ArrayList<>();
 
-    // Bidirectional relationship with OrderDetails
     @OneToMany(mappedBy = "product", cascade = {CascadeType.PERSIST, CascadeType.MERGE}, fetch = FetchType.LAZY, orphanRemoval = true)
     private List<OrderDetails> orderDetails = new ArrayList<>();
 
-    // Utility methods for managing bidirectional relationships
     public void addCartProduct(CartProducts cartProduct) {
         cartProducts.add(cartProduct);
         cartProduct.setProduct(this);

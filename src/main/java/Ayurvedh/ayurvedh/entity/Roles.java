@@ -48,7 +48,6 @@ public class Roles {
     @OneToMany(mappedBy = "role", cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     private List<Users> users = new ArrayList<>();
 
-    // Utility methods for managing bidirectional relationships
     public void addUser(Users user) {
         users.add(user);
         user.setRole(this);

@@ -43,11 +43,9 @@ public class SubCategory {
 
     private Date updatedAt;
 
-    // Bidirectional relationship with Products
     @OneToMany(mappedBy = "subCategory", cascade = {CascadeType.PERSIST, CascadeType.MERGE}, fetch = FetchType.LAZY, orphanRemoval = true)
     private List<Products> products = new ArrayList<>();
 
-    // Utility methods for managing bidirectional relationships
     public void addProduct(Products product) {
         products.add(product);
         product.setSubCategory(this);

@@ -19,7 +19,6 @@ import org.springframework.transaction.annotation.Transactional;
 import Ayurvedh.ayurvedh.Services.UsersService;
 import Ayurvedh.ayurvedh.Configurations.JwtUtil;
 import Ayurvedh.ayurvedh.Repositories.RegistrationRepo;
-import Ayurvedh.ayurvedh.entity.Users;
 import Ayurvedh.ayurvedh.dto.RegisterUserDto;
 import lombok.Data;
 
@@ -80,7 +79,7 @@ public class AuthController {
                 new UsernamePasswordAuthenticationToken(req.getEmail(), req.getPassword())
             );
 
-            // Update last login time without loading the full user object
+          
             registrationRepo.updateLastLoginByEmail(req.getEmail(), new Date());
 
             String role = authentication.getAuthorities().stream()
@@ -94,6 +93,11 @@ public class AuthController {
         } catch (AuthenticationException ex) {
             return ResponseEntity.status(401).body("Invalid credentials");
         }
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout() {
+        return ResponseEntity.ok("Successfully logged out");
     }
 
     @Data

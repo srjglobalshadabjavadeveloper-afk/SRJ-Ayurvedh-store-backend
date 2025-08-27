@@ -73,11 +73,11 @@ public class Users {
     @JoinColumn(name = "role_id", referencedColumnName = "id")
     private Roles role;
 
-    // Bidirectional relationship with CartProducts
+    
     @OneToMany(mappedBy = "user", cascade = {CascadeType.PERSIST, CascadeType.MERGE}, orphanRemoval = true)
     private List<CartProducts> cartProducts = new ArrayList<>();
 
-    // Bidirectional relationship with Order
+    
     @OneToMany(mappedBy = "user", cascade = {CascadeType.PERSIST, CascadeType.MERGE}, orphanRemoval = true)
     private List<Order> orders = new ArrayList<>();
     
@@ -91,7 +91,7 @@ public class Users {
     @Temporal(TemporalType.TIMESTAMP)
     private Date resetPasswordExpiry;
 
-    // Utility methods for managing bidirectional relationships
+    
     public void addAddress(Address address) {
         addresses.add(address);
         address.setUser(this);

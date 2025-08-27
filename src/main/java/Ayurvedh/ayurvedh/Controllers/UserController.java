@@ -27,20 +27,16 @@ public class UserController {
         this.usersService = usersService;
     }
 
-    @GetMapping("/user/dashboard")
-    public ResponseEntity<?> userDashboard(Authentication authentication) {
-        return ResponseEntity.ok("Welcome User");
-    }
 
     @PostMapping("/addresses")
-    public ResponseEntity<?> addAddress(Authentication authentication, @RequestBody AddressDto dto) {
+    public ResponseEntity<Long> addAddress(Authentication authentication, @RequestBody AddressDto dto) {
         String email = authentication.getName();
         Address saved = usersService.addAddressForUser(email, dto);
         return ResponseEntity.ok(saved.getId());
     }
 
     @GetMapping("/addresses")
-    public ResponseEntity<?> getAddresses(Authentication authentication) {
+    public ResponseEntity<List<AddressDto>> getAddresses(Authentication authentication) {
         String email = authentication.getName();
         List<AddressDto> addresses = usersService.getAddressesForUser(email).stream().map(addr -> {
             AddressDto d = new AddressDto();
@@ -56,21 +52,21 @@ public class UserController {
     }
 
     @PostMapping("/orders")
-    public ResponseEntity<?> createOrder(Authentication authentication, @RequestBody CreateOrderDto dto) {
+    public ResponseEntity<Order> createOrder(Authentication authentication, @RequestBody CreateOrderDto dto) {
         String email = authentication.getName();
         Order order = usersService.createOrder(email, dto);
         return ResponseEntity.ok(order);
     }
 
     @GetMapping("/orders")
-    public ResponseEntity<?> getOrders(Authentication authentication) {
+    public ResponseEntity<List<Order>> getOrders(Authentication authentication) {
         String email = authentication.getName();
         List<Order> orders = usersService.getOrders(email);
         return ResponseEntity.ok(orders);
     }
 
     @GetMapping("/orders/{orderId}")
-    public ResponseEntity<?> getOrderById(Authentication authentication,
+    public ResponseEntity<Order> getOrderById(Authentication authentication,
             @org.springframework.web.bind.annotation.PathVariable String orderId) {
         String email = authentication.getName();
         Order order = usersService.getOrderByBusinessId(email, orderId);

@@ -28,9 +28,7 @@ public class AyurvedhApplication {
 			final String adminEmail = "admin@ayurvedh.local";
 			final String adminPassword = "admin123";
 			
-			// Create admin role if it doesn't exist
 			Roles adminRole = getOrCreateRole(rolesRepository, "ADMIN", "Administrator role");
-			// Create user role if it doesn't exist (kept for future use)
 			getOrCreateRole(rolesRepository, "USER", "Regular user role");
 			
 			
@@ -49,12 +47,11 @@ public class AyurvedhApplication {
 				admin.setAvatar("ADMIN");
 				
 				registrationRepo.save(admin);
-				System.out.println("✅ Default admin user created successfully!");
+				System.out.println(" Default admin user created successfully!");
 				System.out.println("   Email: " + adminEmail);
 				System.out.println("   Password: " + adminPassword);
 				System.out.println("   Role: ADMIN");
 			} else {
-				// Check if the admin role is already assigned using a query that doesn't trigger lazy loading
 				boolean hasAdminRole = rolesRepository.existsByIdAndName(existingAdmin.getRole().getId(), "ADMIN");
 				if (!hasAdminRole) {
 					existingAdmin.setRole(adminRole);

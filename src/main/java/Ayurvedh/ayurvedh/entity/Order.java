@@ -57,7 +57,6 @@ public class Order {
 
     private Date updatedAt;
 
-    // Bidirectional relationship with OrderDetails
     @OneToMany(mappedBy = "order", cascade = {CascadeType.PERSIST, CascadeType.MERGE}, orphanRemoval = true)
     private List<OrderDetails> orderDetails = new ArrayList<>();
 }

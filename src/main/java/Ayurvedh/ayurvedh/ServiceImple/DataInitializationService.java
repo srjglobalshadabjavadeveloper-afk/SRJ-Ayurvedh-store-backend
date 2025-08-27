@@ -19,12 +19,11 @@ public class DataInitializationService implements CommandLineRunner {
     @Override
     @Transactional
     public void run(String... args) throws Exception {
-        // Initialize basic roles if they don't exist
         initializeRoles();
     }
 
     private void initializeRoles() {
-        // Create USER role if it doesn't exist
+
         if (!rolesRepository.existsByName("USER")) {
             Roles userRole = new Roles();
             userRole.setName("USER");
@@ -34,7 +33,6 @@ public class DataInitializationService implements CommandLineRunner {
             rolesRepository.save(userRole);
         }
 
-        // Create ADMIN role if it doesn't exist
         if (!rolesRepository.existsByName("ADMIN")) {
             Roles adminRole = new Roles();
             adminRole.setName("ADMIN");

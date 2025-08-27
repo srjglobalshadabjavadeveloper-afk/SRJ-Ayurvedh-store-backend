@@ -51,7 +51,7 @@ public class UsersServiceImpl implements UsersService {
             throw new IllegalArgumentException("Email already registered");
         }
         
-        // Get or create USER role (default role for all new registrations)
+        
         Roles userRole = rolesRepository.findByName("USER")
             .orElseGet(() -> {
                 Roles newRole = new Roles();
