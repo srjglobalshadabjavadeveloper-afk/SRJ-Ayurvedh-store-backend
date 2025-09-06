@@ -8,8 +8,9 @@ public interface categories {
     
     Category addCategory(AddCategoryDto addCategoryDto);
     
-    List<Category> getAllCategories();
+    // List<Category> getAllCategories();
     
+     List<AddCategoryDto> getAllCategories();
     Category getCategoryById(Long id);
     
     Category updateCategory(Long id, AddCategoryDto addCategoryDto);

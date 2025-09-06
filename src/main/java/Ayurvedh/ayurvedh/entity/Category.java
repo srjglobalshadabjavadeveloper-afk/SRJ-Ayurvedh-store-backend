@@ -2,6 +2,10 @@ package Ayurvedh.ayurvedh.entity;
 
 import java.util.Date;
 import java.util.List;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+
 import java.util.ArrayList;
 
 import jakarta.persistence.Entity;
@@ -37,10 +41,13 @@ public class Category {
 
     private Date updatedAt;
 
+      
     @OneToMany(mappedBy = "category", cascade = {CascadeType.PERSIST, CascadeType.MERGE}, fetch = FetchType.LAZY, orphanRemoval = true)
     private List<SubCategory> subCategories = new ArrayList<>();
 
+    
     @OneToMany(mappedBy = "category", cascade = {CascadeType.PERSIST, CascadeType.MERGE}, fetch = FetchType.LAZY, orphanRemoval = true)
+    @JsonIgnore
     private List<Products> products = new ArrayList<>();
 
     public void addSubCategory(SubCategory subCategory) {

@@ -20,6 +20,7 @@ import Ayurvedh.ayurvedh.Services.UsersService;
 import Ayurvedh.ayurvedh.Configurations.JwtUtil;
 import Ayurvedh.ayurvedh.Repositories.RegistrationRepo;
 import Ayurvedh.ayurvedh.dto.RegisterUserDto;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 
 @RestController
@@ -32,7 +33,8 @@ public class AuthController {
     private final JwtUtil jwtUtil;
     private final RegistrationRepo registrationRepo;
 
-    public AuthController(UsersService usersService, PasswordEncoder passwordEncoder, AuthenticationManager authenticationManager, JwtUtil jwtUtil, RegistrationRepo registrationRepo) {
+    public AuthController(UsersService usersService, PasswordEncoder passwordEncoder,
+            AuthenticationManager authenticationManager, JwtUtil jwtUtil, RegistrationRepo registrationRepo) {
         this.usersService = usersService;
         this.authenticationManager = authenticationManager;
         this.jwtUtil = jwtUtil;
@@ -69,23 +71,22 @@ public class AuthController {
 
     @PostMapping("/login")
     @Transactional
-    public ResponseEntity<?> login(@RequestBody LoginRequest req){
-        if (req == null || req.getEmail() == null || req.getEmail().isBlank() || req.getPassword() == null || req.getPassword().isBlank()) {
+    public ResponseEntity<?> login(@RequestBody LoginRequest req) {
+        if (req == null || req.getEmail() == null || req.getEmail().isBlank() || req.getPassword() == null
+                || req.getPassword().isBlank()) {
             return ResponseEntity.badRequest().body("Email and password are required");
         }
 
         try {
             Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(req.getEmail(), req.getPassword())
-            );
+                    new UsernamePasswordAuthenticationToken(req.getEmail(), req.getPassword()));
 
-          
             registrationRepo.updateLastLoginByEmail(req.getEmail(), new Date());
 
             String role = authentication.getAuthorities().stream()
-                .map(GrantedAuthority::getAuthority)
-                .findFirst()
-                .orElse("ROLE_USER");
+                    .map(GrantedAuthority::getAuthority)
+                    .findFirst()
+                    .orElse("ROLE_USER");
 
             String token = jwtUtil.generateToken(req.getEmail());
             long expiresInMs = jwtUtil.getExpirationMs();
@@ -93,6 +94,13 @@ public class AuthController {
         } catch (AuthenticationException ex) {
             return ResponseEntity.status(401).body("Invalid credentials");
         }
+    }
+
+    @Data
+    @AllArgsConstructor
+    public static class AuthUserResponse {
+        private String email;
+        private String role;
     }
 
     @PostMapping("/logout")
@@ -131,5 +139,3 @@ public class AuthController {
         private final long expiresInMs;
     }
 }
-
-

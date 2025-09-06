@@ -2,10 +2,14 @@ package Ayurvedh.ayurvedh.entity;
 
 import java.util.Date;
 import java.util.List;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import java.util.ArrayList;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -35,14 +39,15 @@ public class SubCategory {
 
     private String image;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "category_id", referencedColumnName = "id")
+    @JsonIgnore 
     private Category category;
 
     private Date createdAt;
 
     private Date updatedAt;
-
+ @JsonIgnore
     @OneToMany(mappedBy = "subCategory", cascade = {CascadeType.PERSIST, CascadeType.MERGE}, fetch = FetchType.LAZY, orphanRemoval = true)
     private List<Products> products = new ArrayList<>();
 
@@ -55,4 +60,10 @@ public class SubCategory {
         products.remove(product);
         product.setSubCategory(null);
     }
+
+      // Add a getter for category name to ensure it's included in JSON
+    public String getCategoryName() {
+        return category != null ? category.getName() : null;
+    }
+    
 }

@@ -11,4 +11,6 @@ public class AddSubCategoryDto {
     private String name;
     private String image;
     private Long categoryId;
+    private String categoryName;
+    
 }

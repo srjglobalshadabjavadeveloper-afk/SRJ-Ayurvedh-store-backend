@@ -8,7 +8,6 @@ import Ayurvedh.ayurvedh.entity.Category;
 import Ayurvedh.ayurvedh.entity.SubCategory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
 import java.util.Date;
 import java.util.List;
 
@@ -41,9 +40,15 @@ public class SubCategoryServiceImpl implements SubCategoryService {
     }
 
     @Override
+    public List<SubCategory> getAllSubCategories() {
+        return subCategoryRepository.findAll();
+    }
+
+    @Override
     public List<SubCategory> getSubCategoriesByCategory(Long categoryId) {
         return subCategoryRepository.findByCategory_Id(categoryId);
     }
+
 
     @Override
     public SubCategory getSubCategoryById(Long id) {
@@ -66,10 +71,11 @@ public class SubCategoryServiceImpl implements SubCategoryService {
         }
         sc.setName(dto.getName());
         sc.setImage(dto.getImage());
-        sc.setCategory(category);
+        sc.setCategory(categoryRepository.findById(dto.getCategoryId()).orElse(null));
         sc.setUpdatedAt(new Date());
         return subCategoryRepository.save(sc);
     }
+
 
     @Override
     public void deleteSubCategory(Long id) {

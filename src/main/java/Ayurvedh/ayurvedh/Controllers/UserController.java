@@ -39,7 +39,7 @@ public class UserController {
         String email = authentication.getName();
         Address saved = usersService.addAddressForUser(email, dto);
         return ResponseEntity.ok(saved.getId());
-    }
+    }   
 
     @GetMapping("/addresses")
     public ResponseEntity<List<AddressDto>> getAddresses(Authentication authentication) {
@@ -51,7 +51,7 @@ public class UserController {
             d.setState(addr.getState());
             d.setPinCode(addr.getPin_code());
             d.setCountry(addr.getCountry());
-            d.setMobile(addr.getMobile());
+            d.setMobile(String.valueOf(addr.getMobile()));
             return d;
         }).collect(Collectors.toList());
         return ResponseEntity.ok(addresses);

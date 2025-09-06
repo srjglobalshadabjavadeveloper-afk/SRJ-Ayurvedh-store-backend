@@ -2,6 +2,9 @@ package Ayurvedh.ayurvedh.entity;
 
 import java.util.Date;
 import java.util.List;
+
+import com.fasterxml.jackson.annotation.JsonBackReference;
+
 import java.util.ArrayList;
 
 import jakarta.persistence.Entity;
@@ -47,9 +50,9 @@ public class Products {
 
     private int stock;
 
-    private int price;
+    private double price;
 
-    private int discount;
+    private double discount;
 
     private String description;
 

@@ -9,7 +9,7 @@ public class AddressDto {
 	private String state;
 	private String pinCode;
 	private String country;
-	private Integer mobile;
+	private String mobile;
 }
 
 

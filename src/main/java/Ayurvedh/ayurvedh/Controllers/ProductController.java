@@ -11,6 +11,7 @@ import java.util.List;
 
 import Ayurvedh.ayurvedh.Services.ProductsService;
 import Ayurvedh.ayurvedh.Services.categories;
+import Ayurvedh.ayurvedh.dto.AddCategoryDto;
 import Ayurvedh.ayurvedh.Services.SubCategoryService;
 import Ayurvedh.ayurvedh.entity.Products;
 import Ayurvedh.ayurvedh.entity.Category;
@@ -81,7 +82,7 @@ public class ProductController {
 	public ResponseEntity<?> getAllCategories() {
 
 		try {
-			List<Category> categories = categoriesService.getAllCategories();
+			List<AddCategoryDto> categories = categoriesService.getAllCategories();
 			return ResponseEntity.ok(categories);
 		} catch (Exception e) {
 			return ResponseEntity.badRequest().body("Error fetching categories: " + e.getMessage());

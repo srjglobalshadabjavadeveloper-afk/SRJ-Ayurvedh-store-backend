@@ -40,10 +40,10 @@ public class UsersServiceImpl implements UsersService {
     private final CartProductsRepository cartProductsRepository;
     private final ProductsRepository productsRepository;
 
-    public UsersServiceImpl(RegistrationRepo registrationRepo, AddressRepository addressRepository, 
-                          PasswordEncoder passwordEncoder, MailService mailService, 
-                          OrderRepository orderRepository, RolesRepository rolesRepository,
-                          CartProductsRepository cartProductsRepository, ProductsRepository productsRepository) {
+    public UsersServiceImpl(RegistrationRepo registrationRepo, AddressRepository addressRepository,
+            PasswordEncoder passwordEncoder, MailService mailService,
+            OrderRepository orderRepository, RolesRepository rolesRepository,
+            CartProductsRepository cartProductsRepository, ProductsRepository productsRepository) {
         this.registrationRepo = registrationRepo;
         this.addressRepository = addressRepository;
         this.passwordEncoder = passwordEncoder;
@@ -61,18 +61,17 @@ public class UsersServiceImpl implements UsersService {
         if (existing != null) {
             throw new IllegalArgumentException("Email already registered");
         }
-        
-        
+
         Roles userRole = rolesRepository.findByName("USER")
-            .orElseGet(() -> {
-                Roles newRole = new Roles();
-                newRole.setName("USER");
-                newRole.setDescription("Regular user role");
-                newRole.setCreatedAt(new Date());
-                newRole.setUpdatedAt(new Date());
-                return rolesRepository.save(newRole);
-            });
-        
+                .orElseGet(() -> {
+                    Roles newRole = new Roles();
+                    newRole.setName("USER");
+                    newRole.setDescription("Regular user role");
+                    newRole.setCreatedAt(new Date());
+                    newRole.setUpdatedAt(new Date());
+                    return rolesRepository.save(newRole);
+                });
+
         Users user = new Users();
         user.setEmail(dto.getEmail());
         user.setName(dto.getName());
@@ -126,8 +125,8 @@ public class UsersServiceImpl implements UsersService {
             throw new IllegalArgumentException("Product not found");
         }
         CartProducts cartProduct = cartProductsRepository
-            .findByUserIdAndProductId(user.getId(), product.getId())
-            .orElse(null);
+                .findByUserIdAndProductId(user.getId(), product.getId())
+                .orElse(null);
         if (cartProduct == null) {
             cartProduct = new CartProducts();
             cartProduct.setUser(user);
@@ -163,7 +162,7 @@ public class UsersServiceImpl implements UsersService {
             throw new IllegalArgumentException("Invalid quantity");
         }
         CartProducts item = cartProductsRepository.findByIdAndUserId(cartItemId, user.getId())
-            .orElseThrow(() -> new IllegalArgumentException("Cart item not found"));
+                .orElseThrow(() -> new IllegalArgumentException("Cart item not found"));
         item.setQuantity(quantity);
         item.setUpdatedAt(new Date());
         return cartProductsRepository.save(item);
@@ -177,7 +176,7 @@ public class UsersServiceImpl implements UsersService {
             throw new IllegalArgumentException("User not found");
         }
         CartProducts item = cartProductsRepository.findByIdAndUserId(cartItemId, user.getId())
-            .orElseThrow(() -> new IllegalArgumentException("Cart item not found"));
+                .orElseThrow(() -> new IllegalArgumentException("Cart item not found"));
         cartProductsRepository.delete(item);
     }
 
@@ -205,10 +204,10 @@ public class UsersServiceImpl implements UsersService {
         for (CartProducts cp : items) {
             int qty = cp.getQuantity();
             totalItems += qty;
-            int price = cp.getProduct().getPrice();
-            int discount = cp.getProduct().getDiscount();
-            int lineSubTotal = price * qty;
-            int lineDiscount = discount * qty;
+            double price = cp.getProduct().getPrice();
+            double discount = cp.getProduct().getDiscount();
+            double lineSubTotal = price * qty;
+            double lineDiscount = discount * qty;
             subTotal += lineSubTotal;
             discountTotal += lineDiscount;
         }
@@ -258,8 +257,9 @@ public class UsersServiceImpl implements UsersService {
         address.setPin_code(addressDto.getPinCode());
         address.setCountry(addressDto.getCountry());
         if (addressDto.getMobile() != null) {
-            address.setMobile(addressDto.getMobile());
+            address.setMobile(Integer.parseInt(addressDto.getMobile()));
         }
+
         address.setCreatedAt(new Date());
         address.setUpdatedAt(new Date());
         address.setUser(user);
@@ -281,7 +281,8 @@ public class UsersServiceImpl implements UsersService {
     @Override
     public void sendEmailVerificationOtp(String email) {
         Users user = registrationRepo.findByEmail(email);
-        if (user == null) return;
+        if (user == null)
+            return;
         String otp = generateOtp();
         user.setEmailVerificationOtp(otp);
         user.setEmailVerificationExpiry(Date.from(Instant.now().plus(10, ChronoUnit.MINUTES)));
@@ -293,9 +294,12 @@ public class UsersServiceImpl implements UsersService {
     @Transactional
     public boolean verifyEmail(String email, String otp) {
         Users user = registrationRepo.findByEmail(email);
-        if (user == null) return false;
-        if (user.getEmailVerificationOtp() == null || user.getEmailVerificationExpiry() == null) return false;
-        if (user.getEmailVerificationExpiry().before(new Date())) return false;
+        if (user == null)
+            return false;
+        if (user.getEmailVerificationOtp() == null || user.getEmailVerificationExpiry() == null)
+            return false;
+        if (user.getEmailVerificationExpiry().before(new Date()))
+            return false;
         boolean matched = otp != null && otp.equals(user.getEmailVerificationOtp());
         if (matched) {
             user.setVerify_email(true);
@@ -310,7 +314,8 @@ public class UsersServiceImpl implements UsersService {
     @Override
     public void initiateForgotPassword(String email) {
         Users user = registrationRepo.findByEmail(email);
-        if (user == null) return;
+        if (user == null)
+            return;
         String otp = generateOtp();
         user.setResetPasswordOtp(otp);
         user.setResetPasswordExpiry(Date.from(Instant.now().plus(10, ChronoUnit.MINUTES)));
@@ -322,9 +327,12 @@ public class UsersServiceImpl implements UsersService {
     @Transactional
     public boolean resetPassword(String email, String otp, String newPassword) {
         Users user = registrationRepo.findByEmail(email);
-        if (user == null) return false;
-        if (user.getResetPasswordOtp() == null || user.getResetPasswordExpiry() == null) return false;
-        if (user.getResetPasswordExpiry().before(new Date())) return false;
+        if (user == null)
+            return false;
+        if (user.getResetPasswordOtp() == null || user.getResetPasswordExpiry() == null)
+            return false;
+        if (user.getResetPasswordExpiry().before(new Date()))
+            return false;
         boolean matched = otp != null && otp.equals(user.getResetPasswordOtp());
         if (matched) {
             user.setPassword(passwordEncoder.encode(newPassword));
@@ -341,5 +349,3 @@ public class UsersServiceImpl implements UsersService {
         return String.valueOf(code);
     }
 }
-
-

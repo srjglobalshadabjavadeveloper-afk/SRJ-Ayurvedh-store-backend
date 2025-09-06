@@ -14,9 +14,11 @@ public class AddProductDto {
     private Long subCategoryId;
     private String unit;
     private int stock;
-    private int price;
-    private int discount;
+    private double price;
+    private double  discount;
     private String description;
     private String moreDetails;
     private boolean publish;
+    // private String categoryName;
+    // private String subCategoryName;
 }
