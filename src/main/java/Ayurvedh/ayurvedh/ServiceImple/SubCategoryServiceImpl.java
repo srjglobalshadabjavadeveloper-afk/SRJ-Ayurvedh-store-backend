@@ -48,6 +48,12 @@ public class SubCategoryServiceImpl implements SubCategoryService {
     public List<SubCategory> getSubCategoriesByCategory(Long categoryId) {
         return subCategoryRepository.findByCategory_Id(categoryId);
     }
+    
+     @Override
+    public int countSubCategoriesByCategory(Long categoryId) {
+        List<SubCategory> subCategories = subCategoryRepository.findByCategory_Id(categoryId);
+        return subCategories.size();
+    }
 
 
     @Override

@@ -20,6 +20,7 @@ import Ayurvedh.ayurvedh.Services.UsersService;
 import Ayurvedh.ayurvedh.Configurations.JwtUtil;
 import Ayurvedh.ayurvedh.Repositories.RegistrationRepo;
 import Ayurvedh.ayurvedh.dto.RegisterUserDto;
+import Ayurvedh.ayurvedh.entity.Users;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
@@ -88,7 +89,12 @@ public class AuthController {
                     .findFirst()
                     .orElse("ROLE_USER");
 
-            String token = jwtUtil.generateToken(req.getEmail());
+            Users user = registrationRepo.findByEmail(req.getEmail());
+            if (user == null) {
+                return ResponseEntity.status(404).body("User not found");
+            }
+
+            String token = jwtUtil.generateToken(user.getEmail(), user.getName(),role);
             long expiresInMs = jwtUtil.getExpirationMs();
             return ResponseEntity.ok(new LoginResponse(role, token, expiresInMs));
         } catch (AuthenticationException ex) {

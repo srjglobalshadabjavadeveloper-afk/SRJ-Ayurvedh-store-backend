@@ -27,6 +27,12 @@ public interface UsersService {
 
 	List<Address> getAddressesForUser(String email);
 
+	// Update an address
+	Address updateAddress(String email, Long addressId, AddressDto addressDto);
+
+	// Delete an address
+	void deleteAddress(String email, Long addressId);
+
 	Order createOrder(String email, CreateOrderDto dto);
 
 	List<Order> getOrders(String email);
@@ -44,4 +50,5 @@ public interface UsersService {
 	void clearCart(String email);
 
 	CartSummaryDto getCartSummary(String email);
+
 }

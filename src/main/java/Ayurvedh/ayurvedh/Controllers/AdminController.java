@@ -274,11 +274,14 @@ import Ayurvedh.ayurvedh.entity.Category;
 import Ayurvedh.ayurvedh.entity.SubCategory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+// import org.apache.commons.math3.stat.descriptive.summary.Product;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.util.List;
@@ -313,6 +316,8 @@ public class AdminController {
 	}
 
 	// ===== CATEGORY ENDPOINTS =====
+
+	
 
 	@GetMapping("/categories")
 	public ResponseEntity<?> getAllCategories(Authentication authentication) {
@@ -357,14 +362,18 @@ public class AdminController {
 		}
 	}
 
-	@PutMapping("/categories/{id}")
-	public ResponseEntity<?> updateCategory(@PathVariable Long id, @RequestBody AddCategoryDto addCategoryDto,
+	@PutMapping(value = "/categories/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+	public ResponseEntity<?> updateCategory(
+			@PathVariable Long id,
+			@RequestParam("name") String name,
+			@RequestParam(value = "image", required = false) MultipartFile image,
 			Authentication authentication) {
+
 		if (!isAdmin(authentication)) {
 			return ResponseEntity.status(403).body("Forbidden");
 		}
 		try {
-			Category category = categoriesService.updateCategory(id, addCategoryDto);
+			Category category = categoriesService.updateCategory(id, name, image);
 			if (category == null) {
 				return ResponseEntity.notFound().build();
 			}
@@ -386,6 +395,19 @@ public class AdminController {
 			return ResponseEntity.badRequest().body("Error deleting category: " + e.getMessage());
 		}
 	}
+
+	// @GetMapping("/categories/{categoryId}/subcategories/count")
+	// public ResponseEntity<?> getSubCategoryCount(@PathVariable Long categoryId, Authentication authentication) {
+	// 	if (!isAdmin(authentication)) {
+	// 		return ResponseEntity.status(403).body("Forbidden");
+	// 	}
+	// 	try {
+	// 		int count = subCategoryService.countSubCategoriesByCategory(categoryId);
+	// 		return ResponseEntity.ok(count);
+	// 	} catch (Exception e) {
+	// 		return ResponseEntity.badRequest().body("Error fetching subcategory count: " + e.getMessage());
+	// 	}
+	// }
 
 	// ===== SUBCATEGORY ENDPOINTS =====
 
@@ -521,64 +543,6 @@ public class AdminController {
 		}
 	}
 
-	// @PostMapping("/products")
-	// public ResponseEntity<?> addProduct(@RequestBody AddProductDto addProductDto,
-	// Authentication authentication) {
-	// if (!isAdmin(authentication)) {
-	// return ResponseEntity.status(403).body("Forbidden");
-	// }
-	// try {
-	// Products product = productsService.addProduct(addProductDto);
-	// return ResponseEntity.ok(product);
-	// } catch (Exception e) {
-	// return ResponseEntity.badRequest().body("Error adding product: " +
-	// e.getMessage());
-	// }
-	// }
-
-	// @PostMapping(value = "/products", consumes = { "multipart/form-data" })
-	// public ResponseEntity<?> addProduct(
-	// @RequestParam("name") String name,
-	// @RequestParam("categoryId") Long categoryId,
-	// @RequestParam(value = "subCategoryId", required = false) Long subCategoryId,
-	// @RequestParam("unit") String unit,
-	// @RequestParam("stock") Integer stock,
-	// @RequestParam("price") Double price,
-	// @RequestParam(value = "discount", required = false) Double discount,
-	// @RequestParam(value = "description", required = false) String description,
-	// @RequestParam(value = "moreDetails", required = false) String moreDetails,
-	// @RequestParam(value = "publish", defaultValue = "true") boolean publish,
-	// @RequestParam(value = "image", required = false) MultipartFile image,
-	// Authentication authentication) {
-
-	// if (!isAdmin(authentication)) {
-	// return ResponseEntity.status(403).body("Forbidden");
-	// }
-	// try {
-	// String imageUrl = null;
-	// if (image != null && !image.isEmpty()) {
-	// Map uploadResult = cloudinaryImageService.uploadImage(image);
-	// imageUrl = uploadResult.get("secure_url") != null
-	// ? uploadResult.get("secure_url").toString()
-	// : uploadResult.get("url").toString();
-	// }
-
-	// AddProductDto dto = new AddProductDto(
-	// name, imageUrl, categoryId, subCategoryId,
-	// unit, stock, price, discount,
-	// description, moreDetails, publish
-	// );
-
-	// // ✅ service se DTO aayega
-	// ProductResponseDto responseDto = productsService.addProduct(dto);
-
-	// return ResponseEntity.ok(responseDto);
-	// } catch (Exception e) {
-	// return ResponseEntity.badRequest().body("Error adding product: " +
-	// e.getMessage());
-	// }
-	// }
-
 	@PostMapping(value = "/product", consumes = { "multipart/form-data" })
 	public ResponseEntity<?> addProduct(
 			@RequestParam("name") String name,
@@ -604,7 +568,7 @@ public class AdminController {
 				imageUrl = uploadResult.get("secure_url") != null
 						? uploadResult.get("secure_url").toString()
 						: uploadResult.get("url").toString();
-						System.out.println("Image uploaded to: " + imageUrl);
+				System.out.println("Image uploaded to: " + imageUrl);
 			}
 
 			AddProductDto dto = new AddProductDto();
@@ -621,7 +585,7 @@ public class AdminController {
 			dto.setImage(imageUrl);
 
 			Products product = productsService.addProduct(dto);
-			 System.out.println("Product saved with ID: " + product.getId());
+			System.out.println("Product saved with ID: " + product.getId());
 
 			return ResponseEntity.ok(product);
 		} catch (RuntimeException e) {
@@ -660,6 +624,7 @@ public class AdminController {
 			return ResponseEntity.badRequest().body("Error deleting product: " + e.getMessage());
 		}
 	}
+
 
 	@GetMapping("/products/count")
 	public ResponseEntity<?> getProductCount(Authentication authentication) {

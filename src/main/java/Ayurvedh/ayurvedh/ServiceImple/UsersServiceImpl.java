@@ -5,6 +5,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.Random;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -251,13 +252,13 @@ public class UsersServiceImpl implements UsersService {
             throw new IllegalArgumentException("User not found");
         }
         Address address = new Address();
-        address.setAddress_line(addressDto.getAddressLine());
+        address.setAddressLine(addressDto.getAddressLine());
         address.setCity(addressDto.getCity());
         address.setState(addressDto.getState());
-        address.setPin_code(addressDto.getPinCode());
+        address.setPinCode(addressDto.getPinCode());
         address.setCountry(addressDto.getCountry());
         if (addressDto.getMobile() != null) {
-            address.setMobile(Integer.parseInt(addressDto.getMobile()));
+            address.setMobile((addressDto.getMobile()));
         }
 
         address.setCreatedAt(new Date());
@@ -267,6 +268,49 @@ public class UsersServiceImpl implements UsersService {
         user.addAddress(saved);
         registrationRepo.save(user);
         return saved;
+    }
+
+    @Override
+    public Address updateAddress(String email, Long addressId, AddressDto dto) {
+        Users user = registrationRepo.findByEmail(email);
+        if (user == null) {
+            throw new IllegalArgumentException("User not found");
+        }
+
+        Address address = addressRepository.findById(addressId)
+                .orElseThrow(() -> new RuntimeException("Address not found"));
+
+        if (!address.getUser().getId().equals(user.getId())) {
+            throw new RuntimeException("Address does not belong to user");
+        }
+
+        // Update fields
+        address.setAddressLine(dto.getAddressLine());
+        address.setCity(dto.getCity());
+        address.setState(dto.getState());
+        address.setPinCode(dto.getPinCode());
+        address.setCountry(dto.getCountry());
+        address.setMobile(dto.getMobile());
+        address.setUpdatedAt(new Date());
+
+        return addressRepository.save(address);
+    }
+
+    @Override
+    public void deleteAddress(String email, Long addressId) {
+        Users user = registrationRepo.findByEmail(email);
+        if (user == null) {
+            throw new IllegalArgumentException("User not found");
+        }
+
+        Address address = addressRepository.findById(addressId)
+                .orElseThrow(() -> new RuntimeException("Address not found"));
+
+        if (!address.getUser().getId().equals(user.getId())) {
+            throw new RuntimeException("Address does not belong to user");
+        }
+
+        addressRepository.delete(address);
     }
 
     @Override

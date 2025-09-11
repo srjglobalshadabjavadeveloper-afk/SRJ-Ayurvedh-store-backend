@@ -74,18 +74,36 @@ public class JwtUtil {
             .getBody();
     }
 
-    public String generateToken(String username) {
-        Date now = new Date();
-        Date expiry = new Date(now.getTime() + expirationMs);
-        return Jwts.builder()
-            .setSubject(username)
-            .setIssuedAt(now)
-            .setExpiration(expiry)
-            .setIssuer("ayurvedh")
-            .setAudience("ayurvedh-users")
-            .signWith(getSigningKey(), SignatureAlgorithm.HS256)
-            .compact();
-    }
+    // public String generateToken(String username) {
+    //     Date now = new Date();
+    //     Date expiry = new Date(now.getTime() + expirationMs);
+    //     return Jwts.builder()
+    //         .setSubject(username)
+    //         .setIssuedAt(now)
+    //         .setExpiration(expiry)
+    //         .setIssuer("ayurvedh")
+    //         .setAudience("ayurvedh-users")
+    //         .signWith(getSigningKey(), SignatureAlgorithm.HS256)
+    //         .compact();
+    // }
+
+
+    public String generateToken(String username, String name, String role) {
+    Date now = new Date();
+    Date expiry = new Date(now.getTime() + expirationMs);
+
+    return Jwts.builder()
+        .claim("name", name)      // 👈 user ka actual name
+        .claim("role", role)      // 👈 user ka role (ROLE_USER / ROLE_ADMIN)
+        .setSubject(username)     // 👈 email ya username
+        .setIssuedAt(now)
+        .setExpiration(expiry)
+        .setIssuer("ayurvedh")
+        .setAudience("ayurvedh-users")
+        .signWith(getSigningKey(), SignatureAlgorithm.HS256)
+        .compact();
+}
+
 
     public String generateRefreshToken(String username) {
         Date now = new Date();

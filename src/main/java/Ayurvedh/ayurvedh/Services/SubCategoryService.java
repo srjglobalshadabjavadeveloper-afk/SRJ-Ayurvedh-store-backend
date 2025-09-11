@@ -12,4 +12,6 @@ public interface SubCategoryService {
     SubCategory getSubCategoryById(Long id);
     SubCategory updateSubCategory(Long id, AddSubCategoryDto dto);
     void deleteSubCategory(Long id);
+
+     int countSubCategoriesByCategory(Long categoryId);
 }

@@ -2,7 +2,6 @@ package Ayurvedh.ayurvedh.Controllers;
 
 import java.util.List;
 import java.util.stream.Collectors;
-
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -13,7 +12,6 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-
 import Ayurvedh.ayurvedh.Services.UsersService;
 import Ayurvedh.ayurvedh.dto.AddressDto;
 import Ayurvedh.ayurvedh.entity.Address;
@@ -33,28 +31,76 @@ public class UserController {
         this.usersService = usersService;
     }
 
-
     @PostMapping("/addresses")
-    public ResponseEntity<Long> addAddress(Authentication authentication, @RequestBody AddressDto dto) {
+    public ResponseEntity<?> addAddress(@RequestBody AddressDto dto, Authentication authentication) {
+        if (authentication == null) {
+            return ResponseEntity.status(401).body("Unauthorized");
+        }
+
         String email = authentication.getName();
-        Address saved = usersService.addAddressForUser(email, dto);
-        return ResponseEntity.ok(saved.getId());
-    }   
+        try {
+            Address saved = usersService.addAddressForUser(email, dto);
+            return ResponseEntity.ok(saved);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(404).body(e.getMessage());
+        }
+    }
 
     @GetMapping("/addresses")
-    public ResponseEntity<List<AddressDto>> getAddresses(Authentication authentication) {
+    public ResponseEntity<?> getAddresses(Authentication authentication) {
+        if (authentication == null) {
+            return ResponseEntity.status(401).body("Unauthorized");
+        }
+
         String email = authentication.getName();
-        List<AddressDto> addresses = usersService.getAddressesForUser(email).stream().map(addr -> {
-            AddressDto d = new AddressDto();
-            d.setAddressLine(addr.getAddress_line());
-            d.setCity(addr.getCity());
-            d.setState(addr.getState());
-            d.setPinCode(addr.getPin_code());
-            d.setCountry(addr.getCountry());
-            d.setMobile(String.valueOf(addr.getMobile()));
-            return d;
-        }).collect(Collectors.toList());
+        List<AddressDto> addresses = usersService.getAddressesForUser(email).stream()
+                .map(addr -> {
+                    AddressDto d = new AddressDto();
+                    d.setId(addr.getId());
+                    d.setAddressLine(addr.getAddressLine());
+                    d.setCity(addr.getCity());
+                    d.setState(addr.getState());
+                    d.setPinCode(addr.getPinCode());
+                    d.setCountry(addr.getCountry());
+                    d.setMobile(String.valueOf(addr.getMobile()));
+                    return d;
+                })
+                .collect(Collectors.toList());
+
         return ResponseEntity.ok(addresses);
+    }
+
+    @PutMapping("/addresses/{id}")
+    public ResponseEntity<?> updateAddress(
+            @PathVariable Long id,
+            Authentication authentication,
+            @RequestBody AddressDto dto) {
+
+        if (authentication == null) {
+            return ResponseEntity.status(401).body("Unauthorized");
+        }
+
+        String email = authentication.getName(); // get logged-in user email
+        try {
+            Address updated = usersService.updateAddress(email, id, dto);
+            return ResponseEntity.ok(updated);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(404).body(e.getMessage());
+        }
+    }
+
+    @DeleteMapping("/address/{id}")
+    public ResponseEntity<?> deleteAddress(
+            @PathVariable Long id,
+            Authentication authentication) {
+
+        if (authentication == null) {
+            return ResponseEntity.status(401).body("Unauthorized");
+        }
+
+        String email = authentication.getName();
+        usersService.deleteAddress(email, id);
+        return ResponseEntity.ok("Address deleted successfully");
     }
 
     @PostMapping("/orders")

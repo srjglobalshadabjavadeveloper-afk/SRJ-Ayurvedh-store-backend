@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class AddSubCategoryDto {
+    private Long id;
     private String name;
     private String image;
     private Long categoryId;

@@ -2,6 +2,8 @@ package Ayurvedh.ayurvedh.entity;
 
 import java.util.Date;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -29,17 +31,17 @@ public class Address {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String address_line;
+    private String addressLine;
 
     private String city;
 
     private String state;
 
-    private String pin_code;
+    private String pinCode;
 
     private String country;
 
-    private int mobile;
+    private String mobile;
 
     private Date createdAt;
 
@@ -47,6 +49,7 @@ public class Address {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", referencedColumnName = "id")
+    @JsonIgnore
     private Users user;
 
 }

@@ -11,4 +11,5 @@ import java.util.List;
 public interface SubCategoryRepository extends JpaRepository<SubCategory, Long> {
     SubCategory findByNameAndCategory_Id(String name, Long categoryId);
     List<SubCategory> findByCategory_Id(Long categoryId);
+    //  int countSubCategoriesByCategory(Long categoryId);
 }

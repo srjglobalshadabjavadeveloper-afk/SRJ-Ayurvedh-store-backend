@@ -1,6 +1,7 @@
 package Ayurvedh.ayurvedh.Controllers;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -56,6 +57,16 @@ public class ProductController {
 		}
 	}
 
+    @GetMapping("/subcategories/{id}/products")
+    public ResponseEntity<List<Products>> getProductsBySubCategory(@PathVariable Long id) {
+        try {
+            List<Products> products = productsService.getProductsBySubCategory(id);
+            return ResponseEntity.ok(products);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
 	@GetMapping("/subcategories/category/{categoryId}")
 	public ResponseEntity<?> getSubCategoriesByCategory(@PathVariable Long categoryId) {
 		try {
@@ -77,6 +88,16 @@ public class ProductController {
 		} catch (Exception e) {
 			return ResponseEntity.badRequest().body("Error fetching subcategory: " + e.getMessage());
 
+		}
+	}
+
+	@GetMapping("/subcategories")
+	public ResponseEntity<?> getAllSubCategories(Authentication authentication) {
+		try {
+			List<SubCategory> subCategories = subCategoryService.getAllSubCategories();
+			return ResponseEntity.ok(subCategories);
+		} catch (Exception e) {
+			return ResponseEntity.badRequest().body("Error fetching subcategories: " + e.getMessage());
 		}
 	}
 
@@ -102,6 +123,12 @@ public class ProductController {
 		} catch (Exception e) {
 			return ResponseEntity.badRequest().body("Error fetching category: " + e.getMessage());
 		}
+	}
+
+	@GetMapping("/categories/{categoryId}/products")
+	public ResponseEntity<List<Products>> getProductsByCategory(@PathVariable Long categoryId) {
+		List<Products> products = productsService.getCategoryByProducts(categoryId);
+		return ResponseEntity.ok(products);
 	}
 
 }
