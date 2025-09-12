@@ -2,6 +2,8 @@ package Ayurvedh.ayurvedh.entity;
 
 import java.util.Date;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
 import jakarta.persistence.GeneratedValue;
@@ -29,6 +31,7 @@ public class CartProducts {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", referencedColumnName = "id")
+    // @JsonIgnore
     private Users user;
 
     @ManyToOne(fetch = FetchType.LAZY)

@@ -41,7 +41,7 @@ public interface UsersService {
 
 	CartProducts addToCart(String email, AddToCartDto dto);
 
-	java.util.List<CartProducts> getCart(String email);
+	List<CartProducts> getCart(String email);
 
 	CartProducts updateCartItemQuantity(String email, Long cartItemId, Integer quantity);
 

@@ -135,10 +135,21 @@ public class UserController {
         return ResponseEntity.ok(cp);
     }
 
+    // @GetMapping("/cart")
+    // public ResponseEntity<java.util.List<CartProducts>> getCart(Authentication
+    // authentication) {
+    // String email = authentication.getName();
+    // return ResponseEntity.ok(usersService.getCart(email));
+    // }
+
     @GetMapping("/cart")
-    public ResponseEntity<java.util.List<CartProducts>> getCart(Authentication authentication) {
+    public ResponseEntity<List<CartProducts>> getCart(Authentication authentication) {
         String email = authentication.getName();
-        return ResponseEntity.ok(usersService.getCart(email));
+
+        List<CartProducts> cart = usersService.getCart(email);
+        System.out.println("Cart size: " + cart.size());
+
+        return ResponseEntity.ok(cart);
     }
 
     @PutMapping("/cart/{cartItemId}")

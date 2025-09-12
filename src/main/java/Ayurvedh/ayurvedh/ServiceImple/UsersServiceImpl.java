@@ -3,7 +3,9 @@ package Ayurvedh.ayurvedh.ServiceImple;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
+import java.util.List;
 import java.util.Random;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -143,13 +145,32 @@ public class UsersServiceImpl implements UsersService {
         return saved;
     }
 
+    // @Override
+    // public java.util.List<CartProducts> getCart(String email) {
+    // Users user = registrationRepo.findByEmail(email);
+    // if (user == null) {
+    // throw new IllegalArgumentException("User not found");
+    // }
+    // return cartProductsRepository.findByUserId(user.getId());
+    // }
+
     @Override
-    public java.util.List<CartProducts> getCart(String email) {
+    public List<CartProducts> getCart(String email) {
         Users user = registrationRepo.findByEmail(email);
         if (user == null) {
             throw new IllegalArgumentException("User not found");
         }
-        return cartProductsRepository.findByUserId(user.getId());
+        List<CartProducts> cartProducts = cartProductsRepository.findByUserId(user.getId());
+        // Map CartProducts → CartDto
+        List<CartProducts> cartDtos = cartProducts.stream().map(cp -> {
+            CartProducts dto = new CartProducts();
+            dto.setId(cp.getId());
+            dto.setProduct(cp.getProduct());;
+            dto.setUser(cp.getUser());
+            dto.setQuantity(cp.getQuantity());
+            return dto;
+        }).collect(Collectors.toList());
+        return cartDtos;
     }
 
     @Override
